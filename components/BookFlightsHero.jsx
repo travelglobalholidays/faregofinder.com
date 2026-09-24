@@ -1,5 +1,6 @@
 "use client";
 
+import { CONTACT_INFO } from "@/config/ContactInfo";
 import {
   BadgeCheck,
   CalendarSearch,
@@ -8,13 +9,12 @@ import {
   RefreshCcw,
   XCircle,
 } from "lucide-react";
-import { CONTACT_INFO } from "@/config/ContactInfo";
 
 const quickActions = [
-  { label: "Same-day changes", icon: RefreshCcw },
-  { label: "Cancellations", icon: XCircle },
-  { label: "Missed flights", icon: Plane },
   { label: "New bookings", icon: CalendarSearch },
+  { label: "Cancellations", icon: XCircle },
+  { label: "Changes", icon: Plane },
+  { label: "Customer Support", icon: RefreshCcw },
 ];
 
 export default function BookFlightsHero() {
@@ -23,7 +23,7 @@ export default function BookFlightsHero() {
       <div
         className="
           relative overflow-hidden bg-white
-          px-4 py-10
+          px-4 py-6
           lg:min-h-[620px] lg:py-14
         "
       >
@@ -60,17 +60,20 @@ export default function BookFlightsHero() {
               </span>
             </div>
 
-            <div className="mt-5 grid grid-cols-2 gap-3">
+            <a
+              href={CONTACT_INFO.phoneHref}
+              className="mt-5 grid grid-cols-2 gap-3"
+            >
               {quickActions.map(({ label, icon: Icon }) => (
                 <div
                   key={label}
-                  className="flex items-center justify-center gap-2 rounded-lg bg-gray-50 px-3 py-3 text-sm font-medium text-dark ring-1 ring-black/10 lg:justify-start"
+                  className="flex items-center justify-center gap-2 rounded-lg bg-[var(--theme-color2)] px-3 py-3 text-sm uppercase font-bold  ring-1 text-white ring-black/10 lg:justify-start"
                 >
-                  <Icon className="h-4 w-4 text-theme2" />
+                  {/* <Icon className="h-4 w-4 text-theme2" /> */}
                   {label}
                 </div>
               ))}
-            </div>
+            </a>
           </div>
         </div>
       </div>

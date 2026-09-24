@@ -1,15 +1,15 @@
 "use client";
 
-import { Suspense, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
+import { Suspense, useMemo } from "react";
 
-import Navbar from "@/components/Headers/Navbar";
-import GenericBanner from "@/components/GenericComponents/GenericBannner";
-import Services from "@/components/Services";
 import FlightDealsDescription from "@/components/FlightsContent/FlightDeals";
 import Footer from "@/components/Footer";
-import MobilePromo from "@/components/GenericComponents/MobilePromo";
+import GenericBanner from "@/components/GenericComponents/GenericBannner";
 import MobilePromoModal from "@/components/GenericComponents/MobileModal";
+import MobilePromo from "@/components/GenericComponents/MobilePromo";
+import Navbar from "@/components/Headers/Navbar";
+import Services from "@/components/Services";
 
 const formatText = (text) =>
   text.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
@@ -37,14 +37,17 @@ function FlightDealsContent() {
       utm_campaign: utmCampaign || undefined,
       utm_samp: utmSamp || undefined,
     }),
-    [dynamicTitle, qstrRaw, utmCampaign, utmSamp]
+    [dynamicTitle, qstrRaw, utmCampaign, utmSamp],
   );
 
   return (
     <>
-      <MobilePromo headingText="Fare Search Assistance" />
+      <MobilePromo headingText="Cheap Flight Deals" />
 
-      <Navbar />
+      {/* MobilePromo provides the mobile CTA and compact topbar. */}
+      <div className="hidden md:block">
+        <Navbar />
+      </div>
 
       <GenericBanner
         title={dynamicTitle}

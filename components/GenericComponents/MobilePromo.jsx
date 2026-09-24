@@ -2,7 +2,6 @@
 
 import { CONTACT_INFO } from "@/config/ContactInfo";
 import Image from "next/image";
-import MobileNavbar from "../Headers/MobileNavbar";
 
 const MobilePromo = ({
   phoneNumber = CONTACT_INFO.phoneDisplayDashed,
@@ -16,7 +15,7 @@ const MobilePromo = ({
     <>
       {/* Fixed Top CTA */}
       <div
-        className={`mobileCta fixed top-[104px] left-0 right-0 w-full py-3 px-4 z-[998] shadow-md md:hidden ${primaryBgClass}`}
+        className={`mobileCta fixed top-0 left-0 right-0 w-full py-3 px-4 z-[998] shadow-md md:hidden ${primaryBgClass}`}
       >
         <div className="ctaContent flex items-center justify-center gap-3 max-w-md mx-auto">
           <span className="h-[45px] w-[45px] relative">
@@ -40,11 +39,9 @@ const MobilePromo = ({
       </div>
 
       {/* Main Mobile Section */}
-      <section className="block md:hidden px-3 bg-white shadow-md rounded mt-[80px] mb-[10px]">
-        <MobileNavbar />
-
+      <section className="block md:hidden px-3 bg-white shadow-md rounded mt-[90px] mb-[10px]">
         <div
-          className={`py-2 rounded mb-4 text-center font-semibold text-lg ${textColorClass} ${primaryBgClass}`}
+          className={`py-2 rounded mb-4  text-center font-semibold text-lg ${textColorClass} ${primaryBgClass}`}
         >
           {headingText}
         </div>
@@ -114,9 +111,7 @@ const MobilePromo = ({
         >
           <span className="h-12 w-12 rounded-full bg-center bg-no-repeat bg-[url('/images/call-pullu-love.png')] bg-[length:28px] animate-[trin_1.5s_linear_infinite]" />
           <div>
-            <small className="block text-sm">
-              Flight Booking Assistance
-            </small>
+            <small className="block text-sm">Flight Booking Assistance</small>
             <span className="text-xl font-bold block">{phoneNumber}</span>
           </div>
         </a>
