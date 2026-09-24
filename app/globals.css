@@ -1,0 +1,517 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* === 1. Declare Theme Variables === */
+@theme inline {
+  --color-primary: var(--theme-color);
+  --color-secondary: var(--brand-blue-dark);
+  --color-accent: var(--theme-color2);
+  --color-background: var(--surface-muted);
+  --color-text: var(--text-body);
+  --body-font: var(--font-body);
+  --heading-font: var(--font-heading);
+
+  --theme-color: #0f766e;
+  --theme-color2: #c99a2e;
+  --theme-color-light: rgba(15, 118, 110, 0.12);
+  --theme-bg-light: rgba(15, 118, 110, 0.08);
+
+  --color-blue-50: #e7f6f4;
+  --color-blue-100: #cdece8;
+  --color-blue-200: #9bd9d1;
+  --color-blue-300: #64beb4;
+  --color-blue-400: #2f9f96;
+  --color-blue-500: #0f766e;
+  --color-blue-600: #0b645f;
+  --color-blue-700: #0a524e;
+  --color-blue-800: #083f3d;
+  --color-blue-900: #062f2e;
+  --color-blue-950: #031c1c;
+  --color-orange-50: #fff8e6;
+  --color-orange-100: #f9edc7;
+  --color-orange-200: #efd487;
+  --color-orange-300: #dfb34c;
+  --color-orange-400: #c99a2e;
+  --color-orange-500: #ad7f20;
+  --color-orange-600: #925f1b;
+  --color-orange-700: #744817;
+  --color-orange-800: #553512;
+  --color-orange-900: #3b240d;
+  --color-amber-50: #fff8e6;
+  --color-amber-100: #f9edc7;
+  --color-amber-200: #efd487;
+  --color-amber-300: #dfb34c;
+  --color-amber-400: #c99a2e;
+  --color-amber-500: #ad7f20;
+  --color-amber-600: #925f1b;
+  --color-amber-700: #744817;
+  --color-amber-800: #553512;
+  --color-amber-900: #3b240d;
+  --color-yellow-50: #fff8e6;
+  --color-yellow-100: #f9edc7;
+  --color-yellow-200: #efd487;
+  --color-yellow-300: #dfb34c;
+  --color-yellow-400: #c99a2e;
+  --color-yellow-500: #ad7f20;
+  --color-yellow-600: #925f1b;
+  --color-yellow-700: #744817;
+  --color-yellow-800: #553512;
+  --color-yellow-900: #3b240d;
+  --color-green-50: #e7f6f4;
+  --color-green-100: #cdece8;
+  --color-green-200: #9bd9d1;
+  --color-green-300: #64beb4;
+  --color-green-400: #2f9f96;
+  --color-green-500: #0f766e;
+  --color-green-600: #0b645f;
+  --color-green-700: #0a524e;
+  --color-green-800: #083f3d;
+  --color-green-900: #062f2e;
+  --color-gray-50: #f6f8fb;
+  --color-gray-100: #e8edf3;
+  --color-gray-200: #d8e0ea;
+  --color-gray-300: #c1ccd9;
+  --color-gray-400: #95a3b5;
+  --color-gray-500: #667085;
+  --color-gray-600: #475467;
+  --color-gray-700: #344054;
+  --color-gray-800: #1d2939;
+  --color-gray-900: #0b1220;
+  --color-slate-50: #f6f8fb;
+  --color-slate-100: #e8edf3;
+  --color-slate-200: #d8e0ea;
+  --color-slate-300: #c1ccd9;
+  --color-slate-400: #95a3b5;
+  --color-slate-500: #667085;
+  --color-slate-600: #475467;
+  --color-slate-700: #344054;
+  --color-slate-800: #1d2939;
+  --color-slate-900: #0b1220;
+  --color-neutral-50: #f6f8fb;
+  --color-neutral-100: #e8edf3;
+  --color-neutral-200: #d8e0ea;
+  --color-neutral-300: #c1ccd9;
+  --color-neutral-400: #95a3b5;
+  --color-neutral-500: #667085;
+  --color-neutral-600: #475467;
+  --color-neutral-700: #344054;
+  --color-neutral-800: #1d2939;
+  --color-neutral-900: #0b1220;
+
+  --body-text-color: var(--text-body);
+  --color-white: #ffffff;
+  --color-dark: var(--text-primary);
+  --color-heading: var(--text-primary);
+  --color-light: var(--text-muted);
+  --color-light-blue: var(--text-secondary);
+  --color-blue: var(--brand-blue);
+  --color-blue-dark: var(--brand-blue-dark);
+  --color-hover-dark: var(--brand-blue-dark);
+  --color-light-grey: var(--surface-muted);
+  --color-light-grey-hover: var(--surface-muted-hover);
+  --color-blue-soft: var(--surface-blue);
+  --color-subtle: var(--border);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-green: var(--brand-green);
+  --color-green-strong: var(--brand-green-strong);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-contrast: var(--accent-contrast);
+  --color-icon-muted: var(--icon-muted);
+  --color-label: var(--label);
+  --color-placeholder: var(--placeholder);
+  --color-disabled: var(--disabled);
+  --color-control-text: var(--control-text);
+  --shadow-theme: var(--elevation-card);
+  --shadow-card: var(--elevation-card);
+  --shadow-card-hover: var(--elevation-card-hover);
+  --shadow-dropdown: var(--elevation-dropdown);
+  --shadow-modal: var(--elevation-modal);
+  --shadow-button: var(--elevation-button);
+
+  --box-shadow: var(--elevation-card);
+  --transition: all 0.3s ease-in-out;
+}
+
+/* === 2. Base Layer === */
+@layer base {
+  :root {
+    /* === Brand Colors === */
+    --color-primary: #0f766e;
+    --color-secondary: #081826;
+    --color-accent: #c99a2e;
+    --color-background: #f6f8fb;
+    --color-text: #344054;
+    --brand-blue: #0f766e;
+    --brand-blue-dark: #081826;
+    --brand-green: #c99a2e;
+    --brand-green-strong: #ad7f20;
+    --surface-muted: #f6f8fb;
+    --surface-muted-hover: #e7f6f4;
+    --surface-blue: #e7f6f4;
+    --accent-soft: #fff8e6;
+    --accent-contrast: #ffffff;
+    --text-primary: #0b1220;
+    --text-body: #344054;
+    --text-secondary: #475467;
+    --text-muted: #667085;
+    --border: #d8e0ea;
+    --border-strong: #c1ccd9;
+    --icon-muted: #95a3b5;
+    --label: #344054;
+    --placeholder: #95a3b5;
+    --disabled: #c1ccd9;
+    --control-text: #0b1220;
+    --site-container: 1546px;
+    --elevation-card: 0 14px 34px rgb(8 24 38 / 0.08);
+    --elevation-card-hover: 0 20px 48px rgb(8 24 38 / 0.13);
+    --elevation-dropdown: 0 20px 44px rgb(8 24 38 / 0.18);
+    --elevation-modal: 0 26px 74px rgb(8 24 38 / 0.24);
+    --elevation-button: 0 12px 24px rgb(15 118 110 / 0.22);
+
+    /* === Font Family === */
+    --font-poppins: "Poppins", sans-serif;
+
+    /* === Border Radius === */
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 10px;
+  }
+
+  /* === Global Typography & Layout === */
+  html {
+    font-family: var(--font-poppins);
+    scroll-behavior: smooth;
+  }
+
+  html {
+    box-sizing: border-box;
+    scroll-behavior: smooth;
+  }
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: inherit;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: var(--body-font), sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.8;
+    color: var(--body-text-color);
+  }
+
+  /* ===================
+Forms & Labels
+====================== */
+  label {
+    color: var(--label);
+    cursor: pointer;
+    font-weight: 400;
+  }
+
+  /* ===================
+Selection
+====================== */
+  *::-moz-selection {
+    background: var(--theme-color2);
+    color: var(--color-white);
+    text-shadow: none;
+  }
+
+  ::-moz-selection {
+    background: var(--brand-blue-dark);
+    color: var(--color-white);
+    text-shadow: none;
+  }
+
+  ::selection {
+    background: var(--brand-blue-dark);
+    color: var(--color-white);
+    text-shadow: none;
+  }
+
+  /* ===================
+Placeholder
+====================== */
+  *::-moz-placeholder {
+    color: var(--placeholder);
+    font-size: 16px;
+    opacity: 1;
+  }
+
+  *::placeholder {
+    color: var(--placeholder);
+    font-size: 16px;
+    opacity: 1;
+  }
+
+  /* ===================
+Images
+====================== */
+  img {
+    max-width: 100%;
+    height: auto;
+    transition: var(--transition);
+  }
+
+  /* =========================================================
+CUSTOM UTILITIES 
+========================================================= */
+
+  /* Fonts */
+  .font-body {
+    font-family: var(--body-font), sans-serif;
+  }
+
+  .font-heading {
+    font-family: var(--heading-font), sans-serif;
+  }
+
+  /* Text Colors */
+  .text-theme {
+    color: var(--theme-color);
+  }
+  .text-theme2 {
+    color: var(--theme-color2);
+  }
+  .text-dark {
+    color: var(--color-dark);
+  }
+  .text-body {
+    color: var(--body-text-color);
+  }
+  .text-heading {
+    color: var(--text-primary);
+  }
+  .text-light {
+    color: var(--text-muted);
+  }
+  .text-light-blue {
+    color: var(--text-secondary);
+  }
+  .text-blue {
+    color: var(--brand-blue);
+  }
+  .text-green {
+    color: var(--brand-green);
+  }
+  .text-accent-contrast {
+    color: var(--accent-contrast);
+  }
+  .text-white {
+    color: var(--color-white);
+  }
+
+  /* Background Colors */
+  .bg-theme {
+    background-color: var(--theme-color);
+  }
+  .bg-theme2 {
+    background-color: var(--theme-color2);
+  }
+  .bg-theme-light {
+    background-color: var(--theme-color-light);
+  }
+  .bg-theme-soft {
+    background-color: var(--theme-bg-light);
+  }
+  .bg-dark {
+    background-color: var(--color-dark);
+  }
+  .bg-heading {
+    background-color: var(--brand-blue-dark);
+  }
+  .bg-light-grey {
+    background-color: var(--surface-muted);
+  }
+  .bg-blue {
+    background-color: var(--brand-blue);
+  }
+  .bg-blue-dark,
+  .bg-hover-dark {
+    background-color: var(--brand-blue-dark);
+  }
+  .bg-blue-soft {
+    background-color: var(--surface-blue);
+  }
+  .bg-green {
+    background-color: var(--brand-green);
+  }
+  .bg-accent-soft {
+    background-color: var(--accent-soft);
+  }
+  .bg-white {
+    background-color: var(--color-white);
+  }
+
+  /* Border Colors */
+  .border-theme {
+    border-color: var(--theme-color);
+  }
+  .border-theme2 {
+    border-color: var(--theme-color2);
+  }
+  .border-dark {
+    border-color: var(--color-dark);
+  }
+  .border-white {
+    border-color: var(--color-white);
+  }
+  .border-subtle,
+  .border-border {
+    border-color: var(--border);
+  }
+  .border-blue {
+    border-color: var(--brand-blue);
+  }
+
+  /* Hover Utilities */
+  .hover-text-theme:hover {
+    color: var(--theme-color);
+  }
+  .hover-text-theme2:hover {
+    color: var(--theme-color2);
+  }
+
+  .hover-bg-theme:hover {
+    background-color: var(--theme-color);
+  }
+  .hover-bg-theme2:hover {
+    background-color: var(--theme-color2);
+  }
+
+  /* Shadow & Transition */
+  .shadow-theme {
+    box-shadow: var(--box-shadow);
+  }
+  .shadow-card {
+    box-shadow: var(--elevation-card);
+  }
+  .shadow-card-hover {
+    box-shadow: var(--elevation-card-hover);
+  }
+  .shadow-button {
+    box-shadow: var(--elevation-button);
+  }
+  .font-poppins-medium {
+    font-weight: 500;
+  }
+  .font-poppins-semibold {
+    font-weight: 600;
+  }
+  .transition-theme {
+    transition: var(--transition);
+  }
+  .dropdown-panel {
+    @apply absolute left-0 top-full mt-3 bg-white rounded-xl shadow-xl z-50;
+  }
+  .container {
+    width: min(100% - 2rem, var(--site-container));
+    margin-inline: auto;
+  }
+
+  p,
+  span,
+  a,
+  button,
+  input,
+  textarea {
+    font-family: var(--font-poppins);
+  }
+
+  /* === Buttons === */
+  .btn-primary {
+    @apply bg-[var(--color-primary)] text-white font-semibold rounded-lg px-6 py-3 
+    hover:bg-blue-700 transition-all duration-200;
+  }
+
+  .btn-accent {
+    @apply bg-[var(--color-accent)] text-white font-semibold rounded-lg px-6 py-3 
+    hover:bg-yellow-400 transition-all duration-200;
+  }
+
+  .btn-outline {
+    @apply border border-[var(--color-primary)] text-[var(--color-primary)] rounded-lg px-6 py-3 
+    hover:bg-[var(--color-primary)] hover:text-white transition-all duration-200;
+  }
+
+  /* === Inputs & Utility Defaults === */
+  * {
+    @apply border-gray-200 outline-blue-300/50;
+  }
+
+  input,
+  textarea {
+    @apply rounded-md border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)];
+  }
+}
+@keyframes trin {
+  0%,
+  100% {
+    transform: rotate(0);
+  }
+  25% {
+    transform: rotate(15deg);
+  }
+  50% {
+    transform: rotate(-15deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trin {
+    animation: none;
+  }
+}
+
+@keyframes trin {
+  0%,
+  20%,
+  32%,
+  44%,
+  56%,
+  68%,
+  80% {
+    transform: rotate(0deg);
+  }
+  23%,
+  35%,
+  47%,
+  59%,
+  71% {
+    transform: rotate(15deg);
+  }
+  26%,
+  38%,
+  50%,
+  62%,
+  74% {
+    transform: rotate(0deg);
+  }
+  29%,
+  41%,
+  53%,
+  65%,
+  77% {
+    transform: rotate(-15deg);
+  }
+}
+
+@keyframes topbar-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.topbar-marquee {
+  width: max-content;
+  animation: topbar-marquee 18s linear infinite;
+}

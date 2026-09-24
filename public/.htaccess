@@ -1,0 +1,26 @@
+# Use UTF-8
+AddDefaultCharset UTF-8
+
+RewriteEngine On
+
+# Force HTTPS (FIRST)
+RewriteCond %{HTTPS} off
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# Serve existing files & folders directly
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# SPA fallback (for Next.js static export)
+RewriteRule ^ index.html [L]
+
+# ❌ DISABLE BROWSER CACHING (IMPORTANT)
+<IfModule mod_headers.c>
+  Header set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
+  Header set Pragma "no-cache"
+  Header set Expires "0"
+</IfModule>
+
+# ❌ Disable ETag
+FileETag None
