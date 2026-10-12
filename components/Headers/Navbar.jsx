@@ -6,7 +6,7 @@ import { useState } from "react";
 import { HiMenu, HiX } from "react-icons/hi";
 import { CONTACT_INFO } from "@/config/ContactInfo";
 
-export default function Navbar() {
+export default function Navbar({ compact = false }) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -14,7 +14,7 @@ export default function Navbar() {
       {/* NAVBAR */}
       <nav className="fixed top-0 left-0 w-full z-[999] bg-white shadow-md">
         <div className="bg-dark text-white">
-          <div className="hidden h-9 items-center justify-center px-4 text-center text-[13px] font-medium md:flex">
+          <div className={`hidden ${compact ? "h-7 text-xs" : "h-9 text-[13px]"} items-center justify-center px-4 text-center font-medium md:flex`}>
             <span>
               <strong>Important:</strong> We are an Independent Travel
               Assistance Platform and are not associated with any airline or any
@@ -22,7 +22,7 @@ export default function Navbar() {
             </span>
           </div>
 
-          <div className="h-8 overflow-hidden md:hidden">
+          <div className={`${compact ? "h-7" : "h-8"} overflow-hidden md:hidden`}>
             <div className="topbar-marquee flex h-full items-center whitespace-nowrap text-[12px] font-medium">
               <span className="px-6">
                 <strong>Important:</strong> We are an Independent Travel
@@ -38,21 +38,21 @@ export default function Navbar() {
           </div>
         </div>
 
-        <div className="container mx-auto flex items-center justify-between px-4 py-3 md:py-4">
+        <div className={`${compact ? "mx-auto max-w-7xl h-[60px] md:h-16 gap-3" : "container mx-auto py-3 md:py-4"} flex items-center justify-between px-4`}>
 
           {/* Logo */}
           <Image
             src="/images/logo.png"
             width={160}
             height={40}
-            alt="Logo"
-            className="w-[140px] md:w-[160px]"
+            alt={CONTACT_INFO.brandName}
+            className={compact ? "h-auto w-[125px] md:w-[140px] object-contain" : "h-auto w-[140px] md:w-[160px] object-contain"}
           />
 
           {/* DESKTOP MENU */}
-          <ul className="hidden lg:flex items-center gap-8 font-medium">
+          <ul className={`hidden lg:flex items-center ${compact ? "gap-5 text-sm" : "gap-8"} font-medium`}>
             <li>
-              <Link href="/" className="text-[16px] text-[var(--text-primary)] hover:text-theme">
+              <Link href="/" className={`${compact ? "text-sm" : "text-[16px]"} text-[var(--text-primary)] hover:text-theme`}>
                 Home
               </Link>
             </li>
@@ -60,20 +60,20 @@ export default function Navbar() {
             <li>
               <Link
                 href="/flights"
-                className="text-[16px] text-[var(--text-primary)] hover:text-theme"
+                className={`${compact ? "text-sm" : "text-[16px]"} text-[var(--text-primary)] hover:text-theme`}
               >
                 Flights
               </Link>
             </li>
 
             <li>
-              <Link href="/about-us" className="text-[16px] text-[var(--text-primary)] hover:text-theme">
+              <Link href="/about-us" className={`${compact ? "text-sm" : "text-[16px]"} text-[var(--text-primary)] hover:text-theme`}>
                 About Us
               </Link>
             </li>
 
             <li>
-              <Link href="/contact-us" className="text-[16px] text-[var(--text-primary)] hover:text-theme">
+              <Link href="/contact-us" className={`${compact ? "text-sm" : "text-[16px]"} text-[var(--text-primary)] hover:text-theme`}>
                 Contact Us
               </Link>
             </li>
@@ -83,7 +83,7 @@ export default function Navbar() {
           <div className="hidden md:flex">
             <Link
               href={CONTACT_INFO.phoneHref}
-              className="h-[48px] md:h-[56px] px-6 flex items-center gap-2 rounded-full bg-theme text-white shadow-theme hover:bg-[var(--theme-color2)]"
+              className={`${compact ? "h-11 px-4 rounded-md" : "h-[48px] md:h-[56px] px-6 rounded-full shadow-theme"} flex items-center gap-2 bg-theme text-white hover:bg-[var(--theme-color2)]`}
             >
               <Image
                 src="/images/icons/customer-support.png"
@@ -99,6 +99,9 @@ export default function Navbar() {
 
           {/* MOBILE MENU BUTTON */}
           <button
+            type="button"
+            aria-label={open ? "Close navigation" : "Open navigation"}
+            aria-expanded={open}
             onClick={() => setOpen(!open)}
             className="lg:hidden text-3xl text-[var(--text-primary)]"
           >
@@ -144,7 +147,7 @@ export default function Navbar() {
       </nav>
 
       {/* SPACER */}
-      <div className="h-[104px] md:h-[124px]" />
+      <div className={compact ? "h-[88px] md:h-[92px]" : "h-[104px] md:h-[124px]"} />
     </>
   );
 }

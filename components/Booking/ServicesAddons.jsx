@@ -2,7 +2,7 @@
 
 import { CheckCircle, Clock, Luggage, Minus, Plus, Shield, TrendingDown } from "lucide-react";
 import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import axiosInstance from "@/lib/axiosInstance";
 import { getPassengerCount } from "@/components/Booking/bookingUtils";
 
@@ -40,10 +40,11 @@ const AddonCard = ({ description, icon, onChange, price, selected, title }) => (
             className={`rounded-lg px-5 py-2.5 text-sm font-poppins-semibold text-white transition ${
               selected ? "bg-green hover:bg-green/90" : "bg-blue hover:bg-blue-dark"
             }`}
+            disabled
             onClick={() => onChange(!selected)}
             type="button"
           >
-            {selected ? "Added" : "Add Service"}
+            {selected ? "Selected — contact us to review" : "Unavailable pending service terms"}
           </button>
           {selected && (
             <button
@@ -60,9 +61,12 @@ const AddonCard = ({ description, icon, onChange, price, selected, title }) => (
   </div>
 );
 
-export default function ServicesAddons({ booking, setBooking }) {
+export default function ServicesAddons({ booking, setBooking, onSavingChange }) {
   const { bookingId } = useParams();
   const passengerCount = getPassengerCount(booking);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const inProgress = useRef(false);
   const [addons, setAddons] = useState({
     extraBaggageOutbound: booking?.internalAddons?.extraBaggage?.outbound || 0,
     extraBaggageReturn: booking?.internalAddons?.extraBaggage?.return || 0,
@@ -74,15 +78,24 @@ export default function ServicesAddons({ booking, setBooking }) {
   });
 
   const updateAddons = async (nextAddons) => {
-    setAddons(nextAddons);
+    if (inProgress.current) return;
     try {
+      inProgress.current = true;
+      setSaving(true);
+      onSavingChange?.(true);
+      setError("");
       const response = await axiosInstance.post(
         `/bookings/${bookingId}/addons`,
         nextAddons,
       );
       setBooking(response.data.data);
+      setAddons(nextAddons);
     } catch (error) {
-      console.error("Addon update error:", error);
+      setError(error.response?.data?.message || "Unable to save services. Please try again.");
+    } finally {
+      inProgress.current = false;
+      setSaving(false);
+      onSavingChange?.(false);
     }
   };
 
@@ -107,12 +120,13 @@ export default function ServicesAddons({ booking, setBooking }) {
 
   return (
     <section className="space-y-6">
+      {error && <p role="alert" className="rounded-lg bg-red-50 p-4 text-sm text-red-700">{error}</p>}
       <div className="rounded-xl border border-subtle bg-light-grey p-6">
         <h2 className="font-poppins-semibold text-2xl text-heading">
           Enhance Your Journey
         </h2>
         <p className="mt-2 text-sm text-light">
-          Add services for comfort, protection, and faster travel support.
+          Optional services require provider confirmation and written terms. Contact FaresGoFinder to review availability and costs before authorizing an extra.
         </p>
       </div>
 
@@ -126,7 +140,7 @@ export default function ServicesAddons({ booking, setBooking }) {
               Additional Baggage
             </h3>
             <p className="mt-1 text-sm text-light">
-              Add checked bags at $50 per bag per passenger.
+              The displayed amount is an estimate. Confirm airline bag size, weight, allowance and actual cost before requesting additional baggage.
             </p>
             <div className="mt-5 grid gap-4 md:grid-cols-2">
               {[
@@ -145,7 +159,7 @@ export default function ServicesAddons({ booking, setBooking }) {
                   <div className="flex items-center gap-3">
                     <button
                       className="flex size-8 items-center justify-center rounded-full border border-subtle text-light-blue disabled:opacity-40"
-                      disabled={addons[key] === 0}
+                      disabled={saving || addons[key] === 0}
                       onClick={() => updateBaggage(key, "decrease")}
                       type="button"
                     >
@@ -156,7 +170,7 @@ export default function ServicesAddons({ booking, setBooking }) {
                     </span>
                     <button
                       className="flex size-8 items-center justify-center rounded-full bg-blue text-white disabled:opacity-40"
-                      disabled={addons[key] >= 3}
+                      disabled={saving || addons[key] >= 3}
                       onClick={() => updateBaggage(key, "increase")}
                       type="button"
                     >
@@ -171,7 +185,7 @@ export default function ServicesAddons({ booking, setBooking }) {
       </div>
 
       <AddonCard
-        description="Coverage for cancellation, emergency medical support, and baggage issues."
+        description="Provider, policy wording, coverage and exclusions must be confirmed before purchase."
         icon={<Shield className="size-6 text-green" />}
         onChange={(value) => updateAddons({ ...addons, travelInsurance: value })}
         price={servicePrices.travelInsurance * passengerCount}
@@ -179,7 +193,7 @@ export default function ServicesAddons({ booking, setBooking }) {
         title="Travel Insurance"
       />
       <AddonCard
-        description="Protection for delays, interruptions, and missed connections."
+        description="Eligibility, benefits and exclusions require written provider terms."
         icon={<Clock className="size-6 text-blue" />}
         onChange={(value) => updateAddons({ ...addons, tripProtection: value })}
         price={servicePrices.tripProtection * passengerCount}
@@ -187,7 +201,7 @@ export default function ServicesAddons({ booking, setBooking }) {
         title="Trip Protection Plan"
       />
       <AddonCard
-        description="If the fare drops after booking, request support for the difference."
+        description="No post-purchase fare reimbursement is offered without a confirmed written agreement."
         icon={<TrendingDown className="size-6 text-orange-600" />}
         onChange={(value) =>
           updateAddons({ ...addons, priceDropProtection: value })
@@ -197,7 +211,7 @@ export default function ServicesAddons({ booking, setBooking }) {
         title="Price Drop Protection"
       />
       <AddonCard
-        description="We help with check-in and boarding pass delivery."
+        description="Airline eligibility and check-in requirements must be confirmed for your itinerary."
         icon={<CheckCircle className="size-6 text-green" />}
         onChange={(value) => updateAddons({ ...addons, autoCheckIn: value })}
         price={servicePrices.autoCheckIn * passengerCount}

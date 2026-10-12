@@ -25,7 +25,7 @@ export default function NoFlightsFound({
         <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
           No Flights Found
           <span className="block text-lg md:text-xl font-semibold text-blue-600 mt-2">
-            Let Our Experts Find You The Best Deals
+            Discuss Another Search with FaresGoFinder
           </span>
         </h1>
 
@@ -89,7 +89,7 @@ export default function NoFlightsFound({
           </div>
           <div className="flex items-center gap-2">
             <Clock className="w-4 h-4 text-blue-500" />
-            <span>24/7 Support</span>
+            <span>Travel Support</span>
           </div>
         </div>
 
@@ -137,7 +137,7 @@ export default function NoFlightsFound({
             </div>
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-              <span>24/7 customer support</span>
+              <span>Booking assistance</span>
             </div>
           </div>
         </div>

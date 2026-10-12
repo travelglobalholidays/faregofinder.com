@@ -55,7 +55,7 @@ export default function FlightSearchLoader({
             alt={`${agencyName} Logo`}
             width={120}
             height={50}
-            className="object-contain"
+            className="h-auto w-[120px] object-contain"
           />
           <h2 className="text-gray-900 font-semibold text-lg">{agencyName}</h2>
           <p className="text-blue-700 font-bold text-base">{phone}</p>
@@ -69,7 +69,7 @@ export default function FlightSearchLoader({
           </h3>
           <p className="text-sm text-gray-500 mt-1">
             We're searching the{" "}
-            <span className="text-[var(--theme-color2)] font-medium">best fares</span> for
+            <span className="text-[var(--theme-color2)] font-medium">available flight options</span> for
             you...
           </p>
         </div>

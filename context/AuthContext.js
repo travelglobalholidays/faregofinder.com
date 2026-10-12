@@ -1,6 +1,7 @@
 "use client";
 
 import axiosInstance from "@/lib/axiosInstance";
+import { resumeBooking } from "@/lib/bookingResume";
 import { useRouter } from "next/navigation";
 import {
   createContext,
@@ -87,10 +88,11 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem("user", JSON.stringify(userData));
     setUser(userData);
 
+    router.push(await resumeBooking(axiosInstance, sessionStorage));
     return res.data;
   };
 
-  const login = async (formData) => {
+  const login = async (formData, redirect) => {
     const res = await axiosInstance.post("/auth/login", {
       email: formData.email,
       password: formData.password,
@@ -101,33 +103,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem("user", JSON.stringify(userData));
     setUser(userData);
 
-    const pendingBooking = sessionStorage.getItem("pendingBooking");
-    if (pendingBooking) {
-      try {
-        const { flight } = JSON.parse(pendingBooking);
-        sessionStorage.removeItem("pendingBooking");
-
-        const bookingRes = await axiosInstance.post("/bookings/draft", {
-          offer: flight,
-        });
-
-        const bookingId = bookingRes?.data?.data?._id;
-        if (bookingId) {
-          router.push(`/booking/${bookingId}`);
-          return res.data;
-        }
-      } catch (bookingErr) {
-        console.error("Error creating booking after login:", bookingErr);
-      }
-    }
-
-    const redirectUrl = sessionStorage.getItem("redirectAfterLogin");
-    if (redirectUrl) {
-      sessionStorage.removeItem("redirectAfterLogin");
-      router.push(redirectUrl);
-    } else {
-      router.push("/");
-    }
+    router.push(await resumeBooking(axiosInstance, sessionStorage, redirect));
 
     return res.data;
   };

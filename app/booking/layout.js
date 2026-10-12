@@ -1,4 +1,5 @@
 import { createNoIndexMetadata } from "@/lib/seo";
+import BookingAccess from "@/components/Booking/BookingAccess";
 
 export const metadata = createNoIndexMetadata({
   title: "Booking",
@@ -7,5 +8,5 @@ export const metadata = createNoIndexMetadata({
 });
 
 export default function BookingLayout({ children }) {
-  return children;
+  return <BookingAccess>{children}</BookingAccess>;
 }

@@ -13,32 +13,33 @@ const fares = {
       { text: "Airline change fees apply", allowed: false },
       { text: "Standard cancellation penalties", allowed: false },
       { text: "Seat selection at check-in", allowed: false },
-      { text: "Standard baggage included", allowed: true },
+      { text: "Check the selected airline baggage allowance", allowed: true },
     ],
   },
   flexi: {
-    name: "FlexiFly Service",
+    name: "Additional Assistance",
     price: 49.99,
     features: [
-      { text: "No service change fees", allowed: true },
-      { text: "Reduced cancellation support", allowed: true },
-      { text: "Priority customer support", allowed: true },
-      { text: "Free seat selection assistance", allowed: true },
+      { text: "Review agency and airline change charges", allowed: true },
+      { text: "Cancellation assistance; ticket rules apply", allowed: true },
+      { text: "Booking assistance; response times vary", allowed: true },
+      { text: "Seat selection guidance; airline fees may apply", allowed: true },
     ],
   },
 };
 
-const FareCard = ({ active, badge, fare, id, onSelect }) => (
+const FareCard = ({ active, badge, fare, id, onSelect, disabled }) => (
   <button
     className={`relative rounded-xl border p-6 text-left transition hover:shadow-theme ${
       active ? "border-blue shadow-theme" : "border-subtle hover:border-blue/40"
     }`}
     onClick={() => onSelect(id)}
+    disabled={disabled}
     type="button"
   >
     {badge && (
       <span className="absolute -top-3 left-4 rounded-full bg-blue px-3 py-1 text-xs font-poppins-semibold text-white">
-        Most Popular
+        Additional option
       </span>
     )}
     <div className="mb-4 flex justify-between gap-3">
@@ -76,17 +77,20 @@ export default function ChooseFareType({ booking, setBooking }) {
   const bookingId = booking?._id;
   const [selected, setSelected] = useState(booking?.fareType || "standard");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleFareSelect = async (fareType) => {
-    setSelected(fareType);
+    if (loading) return;
     try {
       setLoading(true);
+      setError("");
       const response = await axiosInstance.put(`/bookings/${bookingId}/fare`, {
         fareType,
       });
       setBooking?.(response.data.data);
+      setSelected(fareType);
     } catch (error) {
-      console.error("Fare update error:", error);
+      setError(error.response?.data?.message || "Unable to save this option. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -95,7 +99,7 @@ export default function ChooseFareType({ booking, setBooking }) {
   return (
     <section className="rounded-xl border border-subtle bg-white p-6 shadow-theme">
       <h2 className="mb-6 font-poppins-semibold text-lg text-heading">
-        Choose Your Fare Type
+        Review Assistance Options
       </h2>
       <div className="grid gap-5 md:grid-cols-2">
         <FareCard
@@ -103,6 +107,7 @@ export default function ChooseFareType({ booking, setBooking }) {
           fare={fares.standard}
           id="standard"
           onSelect={handleFareSelect}
+          disabled={loading}
         />
         <FareCard
           active={selected === "flexi"}
@@ -110,8 +115,10 @@ export default function ChooseFareType({ booking, setBooking }) {
           fare={fares.flexi}
           id="flexi"
           onSelect={handleFareSelect}
+          disabled={loading}
         />
       </div>
+      {error && <p role="alert" className="mt-4 text-sm text-red-700">{error}</p>}
       <div className="mt-8 flex justify-end">
         <button
           className="rounded-lg bg-blue px-6 py-3 font-poppins-semibold text-white shadow-theme transition hover:bg-blue-dark disabled:opacity-60"

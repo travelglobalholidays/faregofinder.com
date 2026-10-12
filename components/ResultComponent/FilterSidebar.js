@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
 import { useFlight } from "@/context/FlightContext";
+import { offerDurationHours, offerPrice, offerStopCategory } from "@/lib/flightOffer";
 import {
   ChevronDown,
   ChevronLeft,
@@ -39,17 +40,11 @@ export default function FlightFilterSidebar() {
 
   // Filter states
   const [priceRange, setPriceRange] = useState([0, 5000]);
-  const [durationRange, setDurationRange] = useState([0, 24]);
-  const [departureTimeRange, setDepartureTimeRange] = useState([
-    "00:00",
-    "23:59",
-  ]);
-  const [arrivalTimeRange, setArrivalTimeRange] = useState(["00:00", "23:59"]);
+  const [durationRange, setDurationRange] = useState([0, 48]);
   const [selectedStops, setSelectedStops] = useState([]);
   const [selectedAirlines, setSelectedAirlines] = useState([]);
   const [selectedAmenities, setSelectedAmenities] = useState([]);
   const [selectedTimeOfDay, setSelectedTimeOfDay] = useState([]);
-  const [selectedCabins, setSelectedCabins] = useState([]);
   const [refundableOnly, setRefundableOnly] = useState(false);
   const [changeableOnly, setChangeableOnly] = useState(false);
   const [sortBy, setSortBy] = useState("recommended");
@@ -57,23 +52,13 @@ export default function FlightFilterSidebar() {
     stops: true,
     price: true,
     duration: true,
-    departure: false,
-    arrival: false,
     airlines: true,
     amenities: false,
     timeOfDay: false,
-    cabin: false,
     flexibility: false,
   });
 
-  const { results = [], setFilteredResults, searchData } = useFlight();
-
-  // Calculate total passengers
-  const totalPassengers = useMemo(() => {
-    if (!searchData?.passengers) return 1;
-    const { adults = 1, children = 0, infants = 0 } = searchData.passengers;
-    return adults + children + infants;
-  }, [searchData]);
+  const { results = [], setFilteredResults } = useFlight();
 
   // Extract airlines
   const airlines = useMemo(() => {
@@ -118,12 +103,10 @@ export default function FlightFilterSidebar() {
       onestop = 0,
       multistop = 0;
     results.forEach((flight) => {
-      const segments =
-        flight.slices?.reduce((acc, s) => acc + (s.segments?.length || 0), 0) ||
-        0;
-      if (segments === 1) nonstop++;
-      else if (segments === 2) onestop++;
-      else if (segments > 2) multistop++;
+      const category = offerStopCategory(flight);
+      if (category === "non-stop") nonstop++;
+      else if (category === "one-stop") onestop++;
+      else multistop++;
     });
 
     const total = results.length;
@@ -181,6 +164,7 @@ export default function FlightFilterSidebar() {
       const prices = results.map((f) => parseFloat(f.total_amount || 0));
       const timeoutId = window.setTimeout(() => {
         setPriceRange([Math.min(...prices), Math.max(...prices)]);
+        setDurationRange([0, Math.max(48, ...results.map(offerDurationHours))]);
       }, 0);
       return () => window.clearTimeout(timeoutId);
     }
@@ -253,15 +237,11 @@ export default function FlightFilterSidebar() {
     if (!results.length) return;
 
     const filtered = results.filter((flight) => {
-      const price = parseFloat(flight.total_amount || 0) * totalPassengers;
+      const price = offerPrice(flight);
       if (price < priceRange[0] || price > priceRange[1]) return false;
 
       // Duration filter
-      const duration =
-        flight.slices?.reduce((acc, s) => {
-          const hours = parseInt(s.duration?.match(/(\d+)H/)?.[1] || "0");
-          return acc + hours;
-        }, 0) || 0;
+      const duration = offerDurationHours(flight);
       if (duration < durationRange[0] || duration > durationRange[1])
         return false;
 
@@ -282,20 +262,7 @@ export default function FlightFilterSidebar() {
 
       // Stops filter
       if (selectedStops.length > 0) {
-        const segments =
-          flight.slices?.reduce(
-            (acc, s) => acc + (s.segments?.length || 0),
-            0,
-          ) || 0;
-        const isNonStop = segments === 1;
-        const isOneStop = segments === 2;
-        const isMultiStop = segments > 2;
-
-        const stopMatch =
-          (selectedStops.includes("non-stop") && isNonStop) ||
-          (selectedStops.includes("one-stop") && isOneStop) ||
-          (selectedStops.includes("two-stops") && isMultiStop);
-        if (!stopMatch) return false;
+        if (!selectedStops.includes(offerStopCategory(flight))) return false;
       }
 
       // Airlines filter
@@ -347,19 +314,7 @@ export default function FlightFilterSidebar() {
             parseFloat(b.total_amount || 0) - parseFloat(a.total_amount || 0)
           );
         case "duration":
-          const aDur =
-            a.slices?.reduce(
-              (acc, s) =>
-                acc + parseInt(s.duration?.match(/(\d+)H/)?.[1] || "0"),
-              0,
-            ) || 0;
-          const bDur =
-            b.slices?.reduce(
-              (acc, s) =>
-                acc + parseInt(s.duration?.match(/(\d+)H/)?.[1] || "0"),
-              0,
-            ) || 0;
-          return aDur - bDur;
+          return offerDurationHours(a) - offerDurationHours(b);
         case "departure":
           const aDep = new Date(
             a.slices?.[0]?.segments?.[0]?.departing_at || 0,
@@ -386,7 +341,6 @@ export default function FlightFilterSidebar() {
     refundableOnly,
     changeableOnly,
     sortBy,
-    totalPassengers,
     setFilteredResults,
   ]);
 
@@ -403,7 +357,8 @@ export default function FlightFilterSidebar() {
     setRefundableOnly(false);
     setChangeableOnly(false);
     setSortBy("recommended");
-    setFilteredResults([]);
+    setFilteredResults(null);
+    setDurationRange([0, Math.max(48, ...results.map(offerDurationHours))]);
   };
 
   // Format helpers
@@ -413,7 +368,7 @@ export default function FlightFilterSidebar() {
   return (
     <>
       {/* Mobile Filter Button  */}
-      <div className="fixed bottom-5 left-1/2 z-[60] -translate-x-1/2 md:hidden">
+      <div className="fixed bottom-5 left-1/2 z-[60] -translate-x-1/2 lg:hidden">
         <button
           onClick={() => setIsMobileOpen(true)}
           className="flex items-center gap-2 rounded-full bg-blue px-6 py-3 text-white shadow-theme transition-all hover:bg-blue-dark"
@@ -430,7 +385,7 @@ export default function FlightFilterSidebar() {
 
       {/* Mobile Filter Bar   */}
       {activeFilterCount > 0 && !isMobileOpen && (
-        <div className="md:hidden fixed top-20 left-0 right-0 z-[55] px-4">
+        <div className="lg:hidden fixed top-[92px] left-0 right-0 z-[55] px-4">
           <div className="flex items-center justify-between rounded-lg border border-subtle bg-white p-2 shadow-theme">
             <div className="flex flex-wrap items-center gap-2">
               {selectedStops.length > 0 && (
@@ -466,22 +421,22 @@ export default function FlightFilterSidebar() {
 
       {/* Mobile Overlay - Below CTA button */}
       {isMobileOpen && (
-        <div className="fixed inset-0 bg-black/50 z-[65] md:hidden" />
+        <div className="fixed inset-0 bg-black/50 z-[1000] lg:hidden" />
       )}
 
       {/* Filter Sidebar  */}
       <div
         ref={sidebarRef}
         className={`
-          fixed inset-y-0 left-0 z-[70] md:static md:z-auto
+          fixed inset-y-0 left-0 z-[1001] lg:static lg:z-auto
           transform transition-transform duration-300 ease-in-out
-          ${isMobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
-          w-[86vw] max-w-sm md:w-full md:max-w-none bg-white md:bg-transparent
-          overflow-y-auto md:overflow-visible max-h-[100dvh] md:max-h-none shadow-2xl md:shadow-none
+          ${isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+          w-[86vw] max-w-sm lg:w-full lg:max-w-none bg-white lg:bg-transparent
+          overflow-y-auto lg:overflow-visible max-h-[100dvh] lg:max-h-none shadow-2xl lg:shadow-none
         `}
       >
-        <Card className="min-h-[100dvh] rounded-none border-0 border-r border-subtle bg-white shadow-none md:min-h-0 md:rounded-lg md:border md:border-border md:bg-white md:shadow-card">
-          <CardContent className="space-y-3 p-4 md:p-4">
+        <Card className="min-h-[100dvh] rounded-none border-0 border-r border-subtle bg-white shadow-none lg:min-h-0 lg:rounded-lg lg:border lg:border-border lg:bg-white lg:shadow-card">
+          <CardContent className="space-y-3 p-4 lg:p-4">
             {/* Header with Close Button */}
             <div className="rounded-lg border border-blue/10 bg-blue-soft p-3">
               <div className="flex items-center justify-between gap-3">
@@ -508,7 +463,7 @@ export default function FlightFilterSidebar() {
                   </button>
                   <button
                     onClick={() => setIsMobileOpen(false)}
-                    className="rounded p-1 hover:bg-blue-soft md:hidden"
+                    className="rounded p-1 hover:bg-blue-soft lg:hidden"
                   >
                     <ChevronLeft className="w-5 h-5" />
                   </button>
@@ -624,10 +579,10 @@ export default function FlightFilterSidebar() {
                   />
                   <div className="flex justify-between text-xs font-medium">
                     <span className="rounded bg-blue-soft px-2 py-1 text-dark">
-                      {formatPrice(priceRange[0] * totalPassengers)}
+                      {formatPrice(priceRange[0])}
                     </span>
                     <span className="rounded bg-blue-soft px-2 py-1 text-dark">
-                      {formatPrice(priceRange[1] * totalPassengers)}
+                      {formatPrice(priceRange[1])}
                     </span>
                   </div>
                 </div>
@@ -652,7 +607,7 @@ export default function FlightFilterSidebar() {
                   <Slider
                     value={durationRange}
                     min={0}
-                    max={48}
+                    max={Math.max(48, ...results.map(offerDurationHours))}
                     step={1}
                     onValueChange={setDurationRange}
                     className="[&_[role=slider]]:bg-theme [&_[role=slider]]:border-theme"

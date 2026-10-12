@@ -3,12 +3,12 @@
 import { useFlight } from "@/context/FlightContext";
 import { CONTACT_INFO } from "@/config/ContactInfo";
 import airportData from "@/data/airports.json";
-import axiosInstance from "@/lib/axiosInstance";
+import { flightSearchKey, searchFlights } from "@/lib/flightSearch";
 import {
   buildFlightResultUrl,
-  normalizeFlightOffers,
+  parseFlightSearchParams,
 } from "@/lib/flightSearchUrl";
-import { addDays, format } from "date-fns";
+import { addDays, format, isValid, parseISO, startOfDay } from "date-fns";
 import { Search } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -25,11 +25,14 @@ import {
   FaUser,
 } from "react-icons/fa";
 import FlightSearchLoader from "./ResultComponent/FlightLoader";
+import { searchCopy } from "@/lib/flightSearchCopy";
 
 export default function FlightSearchForm({
   initialValues = {},
   isResultsPage = false,
   compact = false,
+  locale = "en",
+  onSearchSuccess,
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -37,12 +40,15 @@ export default function FlightSearchForm({
     setSearchData,
     setResults,
     setFilteredResults,
+    setCompletedSearchKey,
     loading,
     setLoading,
     error,
-    setError,
+    setError: setFlightError,
   } = useFlight();
+  const setError = (message) => setFlightError(searchCopy(locale)(message));
   const compactMode = compact && !isResultsPage;
+  const restoredValues = parseFlightSearchParams(searchParams?.toString()) || {};
 
   const [isMounted, setIsMounted] = useState(false);
   useEffect(() => setIsMounted(true), []);
@@ -60,16 +66,15 @@ export default function FlightSearchForm({
 
   // ✅ Safe initial state
   const [tripType, setTripType] = useState(
-    searchParams?.get("tripType") ||
-      (searchParams?.get("trip") === "oneway" ? "One Way" : null) ||
-      initialValues.tripType ||
-      "Roundtrip",
+    ["oneway", "one-way", "One Way"].includes(restoredValues.tripType || searchParams?.get("tripType") || searchParams?.get("trip") || initialValues.tripType)
+      ? "One Way"
+      : "Roundtrip",
   );
   const [fromLocation, setFromLocation] = useState(
-    searchParams?.get("from") || initialValues.from || "",
+    restoredValues.fromDisplay || restoredValues.fromLocation || restoredValues.origin || searchParams?.get("from") || initialValues.from || initialValues.origin || "",
   );
   const [toLocation, setToLocation] = useState(
-    searchParams?.get("to") || initialValues.to || "",
+    restoredValues.toDisplay || restoredValues.toLocation || restoredValues.destination || searchParams?.get("to") || initialValues.to || initialValues.destination || "",
   );
   const [fromSuggestions, setFromSuggestions] = useState([]);
   const [toSuggestions, setToSuggestions] = useState([]);
@@ -83,6 +88,7 @@ export default function FlightSearchForm({
       premium_economy: "Premium Economy",
       business: "Business",
       first_class: "First Class",
+      first: "First Class",
     };
 
     return cabinMap[value] || value || "Economy";
@@ -90,22 +96,32 @@ export default function FlightSearchForm({
 
   const [selectedClass, setSelectedClass] = useState(
     formatCabinLabel(
-      searchParams?.get("class") ||
+      restoredValues.cabinClass || searchParams?.get("class") ||
         searchParams?.get("cabin") ||
-        initialValues.travelClass ||
+        initialValues.travelClass || initialValues.cabinClass ||
         "Economy",
     ),
   );
 
   const getInitialPassengerCount = () => {
+    const normalize = (value) => {
+      const count = (key, min) => {
+        const number = Number(value?.[key]);
+        return Number.isInteger(number) && number >= min && number <= 9 ? number : min;
+      };
+      const result = { adults: count("adults", 1), children: count("children", 0), infants: count("infants", 0) };
+      return result.adults + result.children + result.infants <= 9 ? result : { adults: 1, children: 0, infants: 0 };
+    };
+    if (restoredValues.passengers) return normalize(restoredValues.passengers);
     if (searchParams?.get("passengers")) {
       try {
-        return JSON.parse(searchParams.get("passengers"));
+        return normalize(JSON.parse(searchParams.get("passengers")));
       } catch {
         return { adults: 1, children: 0, infants: 0 };
       }
     }
-    return initialValues.passengers || { adults: 1, children: 0, infants: 0 };
+    if (searchParams?.has("adults")) return normalize({ adults: searchParams.get("adults"), children: searchParams.get("children"), infants: searchParams.get("infants") });
+    return normalize(initialValues.passengers || { adults: 1, children: 0, infants: 0 });
   };
 
   const [passengerCount, setPassengerCount] = useState(
@@ -117,28 +133,25 @@ export default function FlightSearchForm({
   const [showDateRangePicker, setShowDateRangePicker] = useState(false);
   const [monthsToShow, setMonthsToShow] = useState(2);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const submittingRef = useRef(false);
 
   const [dateRange, setDateRange] = useState(null);
 
   // ✅ FIXED: initialize dateRange once (no dependency loop)
   useEffect(() => {
     const startDateParam =
-      searchParams?.get("departureDate") || searchParams?.get("depart");
+      restoredValues.departureDate || searchParams?.get("departureDate") || searchParams?.get("depart");
     const endDateParam =
-      searchParams?.get("returnDate") || searchParams?.get("return");
+      restoredValues.returnDate || searchParams?.get("returnDate") || searchParams?.get("return");
+    const initialDate = (value, fallback) => {
+      const parsed = typeof value === "string" ? parseISO(value) : new Date(value);
+      return value && isValid(parsed) ? parsed : fallback;
+    };
 
     setDateRange([
       {
-        startDate: startDateParam
-          ? new Date(startDateParam)
-          : initialValues.startDate
-            ? new Date(initialValues.startDate)
-            : new Date(),
-        endDate: endDateParam
-          ? new Date(endDateParam)
-          : initialValues.endDate
-            ? new Date(initialValues.endDate)
-            : addDays(new Date(), 3),
+        startDate: initialDate(startDateParam || initialValues.startDate || initialValues.departureDate, new Date()),
+        endDate: initialDate(endDateParam || initialValues.endDate || initialValues.returnDate, addDays(new Date(), 3)),
         key: "selection",
       },
     ]);
@@ -220,30 +233,40 @@ export default function FlightSearchForm({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (submittingRef.current) return;
     setError("");
 
     if (!fromLocation || !toLocation)
       return setError("Please fill in both origin and destination.");
-    if (fromLocation === toLocation)
-      return setError("Origin and destination cannot be the same.");
-    if (!dateRange?.[0]?.startDate)
+    if (!isValid(dateRange?.[0]?.startDate))
       return setError("Please select a departure date.");
-    if (totalPassengers > MAX_PASSENGERS)
+    if (startOfDay(dateRange[0].startDate) < startOfDay(new Date()))
+      return setError("Departure date must be today or later.");
+    if (tripType === "Roundtrip" && (!isValid(dateRange[0].endDate) || dateRange[0].endDate < startOfDay(dateRange[0].startDate)))
+      return setError("Please select a return date on or after departure.");
+    if (passengerCount.adults < 1 || !Object.values(passengerCount).every((count) => Number.isInteger(count) && count >= 0) || totalPassengers > MAX_PASSENGERS)
       return setError(`Maximum ${MAX_PASSENGERS} passengers allowed.`);
 
     const extractIata = (str) => {
       if (!str) return "";
-      const match = str.match(/^[A-Z]{3}/);
-      return match ? match[0] : "";
+      const text = str.trim();
+      const code = text.slice(0, 3).toUpperCase();
+      return airportData.some((airport) => airport === text || (text.toUpperCase() === code && airport.startsWith(`${code}-`))) ? code : "";
     };
+    const origin = extractIata(fromLocation);
+    const destination = extractIata(toLocation);
+    if (!origin || !destination)
+      return setError("Choose valid airports from the suggestions or enter their three-letter airport codes.");
+    if (origin === destination)
+      return setError("Origin and destination cannot be the same.");
 
     const normalizedTripType = tripType === "Roundtrip" ? "roundtrip" : "oneway";
     const cabinClass = selectedClass.toLowerCase().replace(/\s+/g, "_");
 
     const payload = {
       tripType: normalizedTripType,
-      origin: extractIata(fromLocation),
-      destination: extractIata(toLocation),
+      origin,
+      destination,
       departureDate: format(dateRange[0].startDate, "yyyy-MM-dd"),
       returnDate:
         tripType === "Roundtrip"
@@ -254,6 +277,8 @@ export default function FlightSearchForm({
       passengers: passengerCount,
       fromLocation,
       toLocation,
+      fromDisplay: fromLocation,
+      toDisplay: toLocation,
     };
 
     setUserSearchData({
@@ -268,27 +293,29 @@ export default function FlightSearchForm({
     });
 
     try {
+      submittingRef.current = true;
       setIsSubmitting(true);
       setLoading(true);
-      const response = await axiosInstance.post("/flights/search", payload);
-      const apiData = normalizeFlightOffers(response);
+      setFilteredResults(null);
+      const apiData = await searchFlights(payload);
       setSearchData(payload);
       setResults(apiData);
-      setFilteredResults([]);
+      setCompletedSearchKey(flightSearchKey(payload));
       const searchUrl = buildFlightResultUrl(payload);
-      setTimeout(() => {
-        setLoading(false);
-        router.push(searchUrl);
-      }, 1000);
+      setLoading(false);
+      router.push(searchUrl);
+      onSearchSuccess?.();
     } catch (err) {
       console.error("❌ Error fetching flights:", err);
       setError(
         err.response?.data?.message ||
           err.response?.data?.error ||
+          err.message ||
           "Something went wrong. Try again.",
       );
       setLoading(false);
     } finally {
+      submittingRef.current = false;
       setIsSubmitting(false);
     }
   };

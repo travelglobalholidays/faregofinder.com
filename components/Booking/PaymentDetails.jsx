@@ -39,6 +39,7 @@ export default function PaymentDetails({ booking }) {
   };
 
   const confirmPayment = async () => {
+    if (processing) return;
     try {
       setProcessing(true);
       const response = await axiosInstance.post(
@@ -47,11 +48,14 @@ export default function PaymentDetails({ booking }) {
       );
       const reference = response.data?.data?.bookingReference;
       if (reference) {
+        setPayment({ cardNumber: "", cardHolder: "", expiryMonth: "", expiryYear: "", cvv: "" });
         router.push(`/booking/confirmation/${reference}`);
+      } else {
+        throw new Error("The booking service did not return a confirmation reference. Please check your booking before trying again.");
       }
     } catch (error) {
       console.error("Payment error:", error);
-      alert(error.response?.data?.message || "Failed to save payment details");
+      alert(error.response?.data?.message || error.message || "Failed to save payment details");
     } finally {
       setProcessing(false);
       setShowModal(false);
@@ -80,7 +84,7 @@ export default function PaymentDetails({ booking }) {
     <>
       <section className="overflow-hidden rounded-xl border border-subtle bg-white shadow-theme">
         <div className="bg-blue px-6 py-4 font-poppins-semibold text-white">
-          Payment Info (Secure SSL Encrypted Transaction)
+          Payment Details
         </div>
         <form className="space-y-5 p-6" onSubmit={submit}>
           <div className="grid gap-4 md:grid-cols-2">
@@ -147,7 +151,7 @@ export default function PaymentDetails({ booking }) {
           </div>
           <div className="flex items-center gap-2 text-xs text-light">
             <Lock className="size-4 text-blue" />
-            Your payment information is encrypted and secure.
+            Review the payment amount and booking terms before authorizing payment.
           </div>
           <button
             className="w-full rounded-lg bg-green py-4 font-poppins-semibold text-accent-contrast transition hover:bg-green/90"

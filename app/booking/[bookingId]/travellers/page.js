@@ -10,6 +10,7 @@ import TravellersDetails, {
 import Footer from "@/components/common/Footer";
 import Header from "@/components/common/Header";
 import { useAuth } from "@/context/AuthContext";
+import { useFlight } from "@/context/FlightContext";
 import axiosInstance from "@/lib/axiosInstance";
 import { Loader2 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
@@ -30,6 +31,7 @@ export default function TravellersPage() {
   const { bookingId } = useParams();
   const router = useRouter();
   const { user } = useAuth();
+  const { searchData } = useFlight();
   const [booking, setBooking] = useState(null);
   const [travellers, setTravellers] = useState([]);
   const [contact, setContact] = useState(emptyContact);
@@ -44,7 +46,7 @@ export default function TravellersPage() {
         const response = await axiosInstance.get(`/bookings/${bookingId}`);
         const bookingData = response.data.data;
         setBooking(bookingData);
-        setTravellers(createInitialTravellers(bookingData));
+        setTravellers(createInitialTravellers(bookingData, searchData?.passengers));
         setContact((current) => ({
           ...current,
           email: user?.email || bookingData.contactInfo?.email || "",
@@ -62,7 +64,12 @@ export default function TravellersPage() {
   }, [bookingId, user?.email]);
 
   const handleSave = async () => {
+    if (saving) return;
     const passengers = toPassengerPayload(travellers);
+    if (booking?.offerPassengerIds?.length && passengers.length !== booking.offerPassengerIds.length) {
+      alert("Traveller count must match the selected fare. Start a new search to change the number of travellers.");
+      return;
+    }
     const missingPassenger = passengers.some(
       (item) =>
         !item.firstName ||

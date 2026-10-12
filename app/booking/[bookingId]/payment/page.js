@@ -14,6 +14,7 @@ export default function PaymentPage() {
   const { bookingId } = useParams();
   const [booking, setBooking] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const fetchBooking = async () => {
@@ -21,6 +22,9 @@ export default function PaymentPage() {
         setLoading(true);
         const response = await axiosInstance.get(`/bookings/${bookingId}`);
         setBooking(response.data.data);
+        setError("");
+      } catch (err) {
+        setError(err.response?.data?.message || "Unable to load payment details. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -44,6 +48,7 @@ export default function PaymentPage() {
     <>
       <Header />
       <main className="min-h-screen bg-light-grey py-8">
+        {error || !booking ? <p role="alert" className="mx-auto max-w-7xl px-4 py-8 text-red-700">{error || "Booking not found."}</p> :
         <div className="container">
           <div className="mb-5 text-sm text-light">
             Booking / <span className="text-heading">Payment</span>
@@ -58,6 +63,7 @@ export default function PaymentPage() {
             </div>
           </div>
         </div>
+        }
       </main>
       <Footer />
     </>

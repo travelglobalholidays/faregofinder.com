@@ -125,10 +125,11 @@ export default function BookingConfirmationPage() {
                 </button>
                 <button
                   className="inline-flex items-center gap-2 rounded-lg bg-white/15 px-4 py-2"
+                  onClick={() => window.print()}
                   type="button"
                 >
                   <Download className="size-4" />
-                  Save
+                  Save as PDF
                 </button>
               </div>
             </div>

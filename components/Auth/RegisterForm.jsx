@@ -4,14 +4,12 @@ import { useAuth } from "@/context/AuthContext";
 import { Loader2, Lock, Mail, User } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 const inputWrap =
   "flex items-center rounded-lg border border-subtle bg-light-grey px-3 py-3 transition focus-within:border-blue";
 
 export default function RegisterForm() {
-  const router = useRouter();
   const { register } = useAuth();
   const [form, setForm] = useState({ name: "", email: "", password: "" });
   const [loading, setLoading] = useState(false);
@@ -27,9 +25,8 @@ export default function RegisterForm() {
     try {
       setLoading(true);
       await register(form);
-      router.push("/login?registered=true");
     } catch (err) {
-      setError(err.response?.data?.message || "Registration failed");
+      setError(err.response?.data?.message || err.message || "Registration failed");
     } finally {
       setLoading(false);
     }
@@ -45,8 +42,9 @@ export default function RegisterForm() {
           <Image
             src="/images/logo.png"
             alt="FaresGoFinder logo"
-            width={100}
-            height={100}
+            width={200}
+            height={50}
+            className="h-auto w-[200px] object-contain"
           />
         </Link>
         <h1 className="mt-6 font-poppins-semibold text-2xl text-heading">

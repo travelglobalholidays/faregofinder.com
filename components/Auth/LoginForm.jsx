@@ -4,14 +4,13 @@ import { useAuth } from "@/context/AuthContext";
 import { Loader2, Lock, Mail } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 const inputWrap =
   "flex items-center rounded-lg border border-subtle bg-light-grey px-3 py-3 transition focus-within:border-blue";
 
 export default function LoginForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const { login } = useAuth();
   const [form, setForm] = useState({ email: "", password: "" });
@@ -23,11 +22,9 @@ export default function LoginForm() {
     setError("");
     try {
       setLoading(true);
-      await login(form);
-      const redirect = searchParams.get("redirect");
-      if (redirect) router.push(decodeURIComponent(redirect));
+      await login(form, searchParams.get("redirect"));
     } catch (err) {
-      setError(err.response?.data?.message || "Login failed");
+      setError(err.response?.data?.message || err.message || "Login failed");
     } finally {
       setLoading(false);
     }
@@ -43,8 +40,9 @@ export default function LoginForm() {
           <Image
             src="/images/logo.png"
             alt="FaresGoFinder logo"
-            width={100}
-            height={100}
+            width={200}
+            height={50}
+            className="h-auto w-[200px] object-contain"
           />
         </Link>
         <h1 className="mt-6 font-poppins-semibold text-2xl text-heading">

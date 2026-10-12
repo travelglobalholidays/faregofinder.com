@@ -52,7 +52,7 @@ export default function BookingSidebar({ booking }) {
           </Row>
           {booking.fareAmount > 0 && (
             <Row value={formatMoney(booking.fareAmount, currency)}>
-              {booking.fareType === "flexi" ? "FlexiFly Service" : "Fare"}
+              {booking.fareType === "flexi" ? "Additional Assistance" : "Fare"}
             </Row>
           )}
           {booking.internalAddonsAmount > 0 && (
@@ -74,7 +74,7 @@ export default function BookingSidebar({ booking }) {
 
       <div className="overflow-hidden rounded-xl border border-subtle bg-white shadow-theme">
         <div className="bg-blue px-5 py-3 font-poppins-semibold text-white">
-          Secure SSL Booking
+          Review booking terms before payment
         </div>
         <div className="p-6 text-center">
           <ShieldCheck className="mx-auto size-12 text-green" />

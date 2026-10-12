@@ -120,8 +120,8 @@ const FlightDetails = ({ booking }) => {
         <div className="flex gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-700">
           <AlertCircle className="mt-0.5 size-5 shrink-0" />
           <p>
-            This fare can expire soon. Complete your booking to secure the
-            selected price.
+            Fares and availability can change. Review the current total and
+            ticket conditions before authorizing your request.
           </p>
         </div>
       </div>

@@ -15,6 +15,8 @@ export default function AddonsPage() {
   const router = useRouter();
   const [booking, setBooking] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     const fetchBooking = async () => {
@@ -22,6 +24,9 @@ export default function AddonsPage() {
         setLoading(true);
         const response = await axiosInstance.get(`/bookings/${bookingId}`);
         setBooking(response.data.data);
+        setError("");
+      } catch (err) {
+        setError(err.response?.data?.message || "Unable to load booking services. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -45,6 +50,7 @@ export default function AddonsPage() {
     <>
       <Header />
       <main className="min-h-screen bg-light-grey py-8">
+        {error || !booking ? <p role="alert" className="mx-auto max-w-7xl px-4 py-8 text-red-700">{error || "Booking not found."}</p> :
         <div className="container">
           <div className="mb-5 text-sm text-light">
             Booking / <span className="text-heading">Add-on Services</span>
@@ -52,11 +58,12 @@ export default function AddonsPage() {
           <div className="grid gap-6 lg:grid-cols-3">
             <div className="space-y-6 lg:col-span-2">
               <FlightDetails booking={booking} />
-              <ServicesAddons booking={booking} setBooking={setBooking} />
+              <ServicesAddons booking={booking} setBooking={setBooking} onSavingChange={setSaving} />
               <div className="flex justify-end">
                 <button
                   className="flex items-center gap-2 rounded-lg bg-blue px-7 py-3 font-poppins-semibold text-white transition hover:bg-blue-dark"
                   onClick={() => router.push(`/booking/${bookingId}/payment`)}
+                  disabled={saving}
                   type="button"
                 >
                   Continue to Payment
@@ -65,7 +72,7 @@ export default function AddonsPage() {
               </div>
               <div className="flex items-center justify-center gap-2 text-sm text-light">
                 <Shield className="size-4 text-blue" />
-                Secure checkout
+                Continue to payment review
                 <Lock className="size-4 text-blue" />
               </div>
             </div>
@@ -74,6 +81,7 @@ export default function AddonsPage() {
             </div>
           </div>
         </div>
+        }
       </main>
       <Footer />
     </>

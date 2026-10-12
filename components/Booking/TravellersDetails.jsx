@@ -208,8 +208,17 @@ const Group = ({ onAdd, onRemove, onUpdate, title, travellers, type }) => (
   </div>
 );
 
-export const createInitialTravellers = (booking) => {
+export const createInitialTravellers = (booking, passengerCounts) => {
+  if (booking?.passengers?.length) {
+    return booking.passengers.map((passenger, index) => {
+      const [year, month, day] = (passenger.dateOfBirth || "").slice(0, 10).split("-");
+      return { ...emptyTraveller(passenger.type || "adult", index), ...passenger, year: year || "", month: months[Number(month) - 1] || "", day: day || "" };
+    });
+  }
   const count = booking?.offerPassengerIds?.length || 1;
+  if (passengerCounts && passengerCounts.adults + passengerCounts.children + passengerCounts.infants === count) {
+    return [["adult", passengerCounts.adults], ["child", passengerCounts.children], ["infant", passengerCounts.infants]].flatMap(([type, quantity]) => Array.from({ length: quantity }, (_, index) => emptyTraveller(type, index)));
+  }
   return Array.from({ length: count }, (_, index) =>
     emptyTraveller("adult", index),
   );
@@ -233,7 +242,7 @@ export default function TravellersDetails({ travellers, setTravellers }) {
   };
 
   const addTraveller = (type) => {
-    setTravellers((current) => [...current, emptyTraveller(type, current.length)]);
+    setTravellers((current) => current.length < 9 ? [...current, emptyTraveller(type, current.length)] : current);
   };
 
   const removeTraveller = (type, index) => {

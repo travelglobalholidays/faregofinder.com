@@ -59,9 +59,6 @@ export default function RootLayout({ children }) {
         <meta name="theme-color" content="#0f766e" />
         <meta name="format-detection" content="telephone=no" />
 
-        {/* Canonical */}
-        <link rel="canonical" href="https://faresgofinder.com" />
-
         {/* Favicon */}
         <link rel="icon" href="/images/favicon.png" sizes="any" />
         <link rel="apple-touch-icon" href="/images/favicon.png" />

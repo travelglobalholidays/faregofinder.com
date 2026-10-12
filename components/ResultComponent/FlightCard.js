@@ -3,7 +3,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { useFlight } from "@/context/FlightContext";
 import axiosInstance from "@/lib/axiosInstance";
-import airportData from "@/public/data/airports.json";
+
 import {
   ArrowRight,
   ChevronDown,
@@ -17,30 +17,32 @@ import {
   Wifi,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useCallback, useMemo, useState } from "react";
-import NoFlightsFound from "./NoResult";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 export default function FlightCard() {
   const [expandedCard, setExpandedCard] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [loadingFlightId, setLoadingFlightId] = useState(null);
   const [bookingError, setBookingError] = useState("");
+  const bookingInProgress = useRef(false);
 
   const flightsPerPage = 12;
   const router = useRouter();
 
   const {
     results = [],
-    filteredResults = [],
+    filteredResults = null,
     searchData,
     setSelectedFlight,
   } = useFlight();
 
   // Determine which results to display
   const displayResults = useMemo(() => {
-    const source = filteredResults?.length > 0 ? filteredResults : results;
+    const source = filteredResults === null ? results : filteredResults;
     return Array.isArray(source) ? source : [];
   }, [filteredResults, results]);
+
+  useEffect(() => { setCurrentPage(1); setExpandedCard(null); }, [displayResults]);
 
   // Helper function to safely get string value from any input
   const safeString = (value, fallback = "") => {
@@ -57,41 +59,7 @@ export default function FlightCard() {
     return fallback;
   };
 
-  // Safe airport name lookup
-  const findAirportName = useCallback((iata) => {
-    if (!iata || typeof iata !== "string") return "Unknown Airport";
 
-    try {
-      const airport = airportData.find((a) => {
-        if (typeof a === "string") {
-          return a.startsWith(iata);
-        } else if (a && typeof a === "object") {
-          return a.iata_code === iata;
-        }
-        return false;
-      });
-
-      if (!airport) return iata;
-
-      if (typeof airport === "string") {
-        const parts = airport.split("-");
-        if (parts.length > 1) {
-          const namePart = parts[1].split(",")[0].trim();
-          return namePart || parts[1].trim();
-        }
-        return iata;
-      }
-
-      if (airport && typeof airport === "object") {
-        return airport.name || airport.city_name || airport.city || iata;
-      }
-
-      return iata;
-    } catch (error) {
-      console.error("Error finding airport name:", error);
-      return iata;
-    }
-  }, []);
 
   // Format duration from PT format
   const formatDuration = useCallback((duffelDuration) => {
@@ -119,21 +87,7 @@ export default function FlightCard() {
     }
   }, []);
 
-  // Format date
-  const formatDate = useCallback((dateTimeStr) => {
-    if (!dateTimeStr) return "N/A";
-    try {
-      const date = new Date(dateTimeStr);
-      if (isNaN(date.getTime())) return "N/A";
-      return date.toLocaleDateString([], {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      });
-    } catch {
-      return "N/A";
-    }
-  }, []);
+
 
   // Calculate total price
   const calculateTotalPrice = useCallback(
@@ -143,24 +97,12 @@ export default function FlightCard() {
       const basePrice = parseFloat(
         flight.total_amount || flight.base_amount || 0,
       );
-      const totalPassengers = searchData?.passengers
-        ? (searchData.passengers.adults || 0) +
-          (searchData.passengers.children || 0) +
-          (searchData.passengers.infants || 0)
-        : 1;
-
-      return (basePrice * totalPassengers).toFixed(2);
+      return basePrice.toFixed(2);
     },
     [searchData],
   );
 
-  // Get total stops
-  const getTotalStops = useCallback((slices) => {
-    if (!Array.isArray(slices)) return 0;
-    return slices.reduce((total, slice) => {
-      return total + Math.max(0, (slice.segments?.length || 1) - 1);
-    }, 0);
-  }, []);
+
 
   const airportCode = (value, fallback = "N/A") =>
     safeString(value?.iata_code || value?.code || value, fallback);
@@ -305,11 +247,24 @@ export default function FlightCard() {
 
   // Handle booking
   const handleBookNow = async (flight) => {
+    if (bookingInProgress.current) return;
+    const redirectToLogin = () => {
+      sessionStorage.setItem("pendingBooking", JSON.stringify({ flight }));
+      sessionStorage.setItem("redirectAfterLogin", window.location.pathname + window.location.search);
+      router.push("/login");
+    };
     try {
+      bookingInProgress.current = true;
       const flightKey = flight.id || flight.offerId || "selected-flight";
       setLoadingFlightId(flightKey);
       setBookingError("");
       setSelectedFlight?.(flight);
+
+      if (!localStorage.getItem("token")) {
+        redirectToLogin();
+        return;
+      }
+      await axiosInstance.get("/auth/me");
 
       const res = await axiosInstance.post("/bookings/draft", {
         offer: flight,
@@ -323,6 +278,12 @@ export default function FlightCard() {
 
       throw new Error("Booking draft was not returned by the server.");
     } catch (err) {
+      if (err.response?.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        redirectToLogin();
+        return;
+      }
       console.error("Booking error:", err.response?.data || err.message);
       setBookingError(
         err.response?.data?.message ||
@@ -331,6 +292,7 @@ export default function FlightCard() {
           "Unable to start booking. Please try again.",
       );
     } finally {
+      bookingInProgress.current = false;
       setLoadingFlightId(null);
     }
   };
@@ -371,28 +333,16 @@ export default function FlightCard() {
     return visiblePages;
   }, [currentPage, totalPages]);
 
-  // Amenity Icon Component
-  const AmenityIcon = ({ amenity }) => {
-    const icons = {
-      WiFi: <Wifi className="w-3 h-3" />,
-      Meal: <Utensils className="w-3 h-3" />,
-      Entertainment: <Tv className="w-3 h-3" />,
-    };
 
-    return (
-      <div
-        className="flex items-center gap-1 px-2 py-1 bg-white border border-gray-100 rounded-lg shadow-xs"
-        title={amenity}
-      >
-        {icons[amenity] || amenity}
-        <span className="text-xs font-medium text-light">{amenity}</span>
-      </div>
-    );
-  };
 
   // No flights state
   if (!displayResults || displayResults.length === 0) {
-    return <NoFlightsFound />;
+    return (
+      <div className="rounded-lg border border-subtle bg-white p-6 text-center" role="status">
+        <h2 className="text-lg font-semibold text-dark">No flights match these filters</h2>
+        <p className="mt-2 text-sm text-body">Adjust or clear your filters to see more flight options.</p>
+      </div>
+    );
   }
 
   // Cheapest price among all results
@@ -493,7 +443,7 @@ export default function FlightCard() {
                     )}
                     {isBestValue && (
                       <span className="rounded-full bg-accent-soft px-2.5 py-1 text-[10px] font-semibold text-heading">
-                        Best Value
+                        Lower fare in these results
                       </span>
                     )}
                   </div>
