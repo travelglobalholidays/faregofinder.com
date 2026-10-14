@@ -85,6 +85,7 @@ const sections = [
 export default function FlightsLandingPage({ content }) {
   const {
     heading,
+    mobileHeading = heading,
     subheading,
     promoDescription,
     popupDescription,
@@ -102,10 +103,10 @@ export default function FlightsLandingPage({ content }) {
       <CallBar label={callLabel} />
       <section
         className="bg-white px-4 pb-5 pt-24 md:hidden"
-        aria-label="Flight booking phone assistance"
+        // aria-label="Flight booking phone assistance"
       >
         <h2 className="mb-4 rounded-md bg-blue px-3 py-3 text-center text-xl text-white">
-          {heading}
+          {mobileHeading}
         </h2>
         <Image
           src="/images/Generic-Banner.png"
